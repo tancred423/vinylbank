@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["deno.window"]
+  },
+  "fmt": {
+    "include": ["src/"],
+    "useTabs": false,
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": false,
+    "proseWrap": "preserve"
+  },
+  "lint": {
+    "include": ["src/"],
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run src/main.ts",
+    "dev": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run --watch src/main.ts",
+    "db:generate": "deno run --allow-read --allow-write --allow-env --allow-sys --allow-run npm:drizzle-kit@latest generate",
+    "db:migrate": "deno run --allow-net --allow-read --allow-env src/db/migrate.ts"
+  },
+  "imports": {
+    "oak": "https://deno.land/x/oak@v16.0.0/mod.ts",
+    "drizzle-orm": "npm:drizzle-orm@^0.29.0",
+    "drizzle-kit": "npm:drizzle-kit@^0.20.0",
+    "mysql2": "npm:mysql2@^3.6.5"
+  }
+}

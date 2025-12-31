@@ -1,0 +1,66 @@
+#!/bin/bash
+
+set -e
+
+COMPOSE_FILE="docker-compose.dev.yml"
+
+case "$1" in
+  up)
+    docker compose -f "$COMPOSE_FILE" up -d
+    echo "✓ Development containers started"
+    echo "  Frontend: http://localhost:5173"
+    echo "  Backend:  http://localhost:8000"
+    echo "  phpMyAdmin: http://localhost:8080"
+    ;;
+  stop)
+    docker compose -f "$COMPOSE_FILE" stop
+    echo "✓ Development containers stopped"
+    ;;
+  down)
+    docker compose -f "$COMPOSE_FILE" down
+    echo "✓ Development containers removed"
+    ;;
+  rebuild)
+    docker compose -f "$COMPOSE_FILE" build --no-cache backend frontend
+    docker compose -f "$COMPOSE_FILE" up -d backend frontend
+    echo "✓ Frontend and backend rebuilt"
+    ;;
+  logs)
+    docker compose -f "$COMPOSE_FILE" logs -f backend frontend
+    ;;
+  reset-db)
+    docker compose -f "$COMPOSE_FILE" down -v
+    docker compose -f "$COMPOSE_FILE" up -d
+    echo "✓ Database reset and containers restarted"
+    ;;
+  check-backend)
+    echo "Running backend code quality checks..."
+    docker compose -f "$COMPOSE_FILE" exec backend deno fmt
+    docker compose -f "$COMPOSE_FILE" exec backend deno lint
+    docker compose -f "$COMPOSE_FILE" exec backend sh -c "find src -name '*.ts' -exec deno check {} +"
+    echo "✓ Backend checks completed"
+    ;;
+  check-frontend)
+    echo "Running frontend code quality checks..."
+    docker compose -f "$COMPOSE_FILE" exec frontend npm run format
+    docker compose -f "$COMPOSE_FILE" exec frontend npm run lint
+    docker compose -f "$COMPOSE_FILE" exec frontend npm run type-check
+    echo "✓ Frontend checks completed"
+    ;;
+  *)
+    echo "VinylBank Development Helper"
+    echo ""
+    echo "Usage: ./dev <command>"
+    echo ""
+    echo "Commands:"
+    echo "  up            Start all development containers"
+    echo "  stop          Stop all containers (keeps data)"
+    echo "  down          Stop and remove all containers"
+    echo "  rebuild       Rebuild frontend and backend containers"
+    echo "  logs          Follow logs for frontend and backend"
+    echo "  reset-db      Reset database (removes volumes) and restart containers"
+    echo "  check-backend Run deno fmt, lint and check in backend container"
+    echo "  check-frontend Run npm format, lint and type-check in frontend container"
+    ;;
+esac
+

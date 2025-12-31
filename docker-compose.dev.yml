@@ -1,0 +1,86 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: vinylbank-mysql-dev
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vinylbank}
+      MYSQL_USER: ${MYSQL_USER:-vinylbank}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-vinylbank}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: vinylbank-phpmyadmin-dev
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: ${PMA_USER:-root}
+      PMA_PASSWORD: ${PMA_PASSWORD:-${MYSQL_ROOT_PASSWORD:-rootpassword}}
+    ports:
+      - "8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: vinylbank-backend-dev
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/deno.json:/app/deno.json
+      - ./backend/drizzle.config.ts:/app/drizzle.config.ts
+      - ./backend/drizzle:/app/drizzle
+      - uploads-data:/app/uploads
+    working_dir: /app
+    environment:
+      - PORT=8000
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+      - DB_HOST=${DB_HOST:-mysql}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-vinylbank}
+      - DB_PASSWORD=${DB_PASSWORD:-vinylbank}
+      - DB_NAME=${DB_NAME:-vinylbank}
+    command: deno task dev
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: vinylbank-frontend-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-/api}
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL:-http://localhost:8000}
+      - VITE_DEFAULT_LANGUAGE=${VITE_DEFAULT_LANGUAGE:-en}
+    command: npm run dev
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:
+  uploads-data:
+

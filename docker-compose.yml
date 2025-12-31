@@ -1,0 +1,48 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: vinylbank-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vinylbank}
+      MYSQL_USER: ${MYSQL_USER:-vinylbank}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-vinylbank}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/tancred423/vinylbank-backend:latest
+    container_name: vinylbank-backend
+    environment:
+      - PORT=8000
+      - CORS_ORIGIN=http://localhost:${FRONTEND_PORT:-80}
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=${MYSQL_USER:-vinylbank}
+      - DB_PASSWORD=${MYSQL_PASSWORD:-vinylbank}
+      - DB_NAME=${MYSQL_DATABASE:-vinylbank}
+    volumes:
+      - uploads-data:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/tancred423/vinylbank-frontend:latest
+    container_name: vinylbank-frontend
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+  uploads-data:

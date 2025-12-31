@@ -1,0 +1,177 @@
+{
+  "app": {
+    "title": "VinylBank",
+    "loading": "Loading..."
+  },
+  "nav": {
+    "collection": "Collection",
+    "config": "Configuration",
+    "importExport": "Import/Export"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "required": "Required",
+    "optional": "Optional",
+    "select": "Select..."
+  },
+  "collection": {
+    "title": "My Collection",
+    "addItem": "Add Item",
+    "editItem": "Edit Item",
+    "deleteItem": "Delete Item",
+    "searchPlaceholder": "Search...",
+    "filterByType": "Filter by type",
+    "allTypes": "All Media",
+    "noResults": "No results found",
+    "tryDifferentSearch": "Try a different search term",
+    "noItemsYet": "No items yet",
+    "noTypeItemsYet": "No {type} items yet",
+    "startAddingFirstItem": "Start by adding your first media item!",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "typeChangeHint": "Changing the medium will delete incompatible field data.",
+    "previous": "Previous",
+    "next": "Next",
+    "pageInfo": "Page {current} of {total}",
+    "allStatuses": "All Statuses"
+  },
+  "item": {
+    "title": "Title",
+    "type": "Medium",
+    "status": "Status",
+    "notes": "Notes",
+    "coverImage": "Cover Image",
+    "borrowedBy": "Borrowed By",
+    "borrowedDate": "Borrowed Date",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At"
+  },
+  "status": {
+    "available": "Available",
+    "borrowed": "Borrowed",
+    "lost": "Lost"
+  },
+  "borrow": {
+    "borrowedFor": "Borrowed for",
+    "years": "{count} year | {count} years",
+    "months": "{count} month | {count} months",
+    "weeks": "{count} week | {count} weeks",
+    "days": "{count} day | {count} days"
+  },
+  "config": {
+    "title": "Configuration",
+    "addType": "Add Medium",
+    "editType": "Edit Medium",
+    "deleteType": "Delete Medium",
+    "typeName": "Medium Name",
+    "addField": "Add Field",
+    "editField": "Edit Field",
+    "deleteField": "Delete Field",
+    "noFields": "No fields configured. Add fields to customize the form for this medium.",
+    "defaultFieldsHint": "Title, Type and Borrow Status are included automatically. Add custom fields below.",
+    "fieldLabel": "Field Label",
+    "fieldType": "Field Type",
+    "fieldRequired": "Required field",
+    "fieldOptions": "Options (one per line)",
+    "optionsHint": "Enter one option per line",
+    "checkboxOptions": "Checkbox Labels",
+    "checkboxOptionsHint": "Enter one checkbox label per line",
+    "radioOptions": "Radio Button Options",
+    "radioOptionsHint": "Enter one option per line",
+    "addOption": "Add Option",
+    "confirmDeleteType": "Are you sure you want to delete this medium? All items stored as this medium will be permanently deleted.",
+    "confirmDeleteField": "Are you sure you want to delete this field? All data stored in this field for all items will be permanently deleted.",
+    "dragToReorder": "Drag to reorder",
+    "dropHere": "Drop here"
+  },
+  "fieldTypes": {
+    "text": "Text",
+    "number": "Number",
+    "date": "Date",
+    "select": "Select",
+    "textarea": "Textarea",
+    "checkbox": "Checkboxes",
+    "radio": "Radio Buttons",
+    "image": "Image",
+    "rating": "Rating",
+    "keyvalue": "Assignment List"
+  },
+  "keyvalue": {
+    "addPair": "Add assignment",
+    "keyPlaceholder": "e.g. Actor",
+    "valuePlaceholder": "e.g. Role",
+    "removePair": "Remove assignment",
+    "showMore": "{count} more",
+    "requiresAtLeastOne": "{field} requires at least one assignment",
+    "incompletePairs": "{field} has incomplete assignments. Please fill both fields or remove empty rows."
+  },
+  "rating": {
+    "stars": "{count} stars",
+    "clear": "Clear rating"
+  },
+  "image": {
+    "remove": "Remove image"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "auto": "Auto"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalid": "Invalid value",
+    "networkError": "Network error. Please try again.",
+    "serverError": "Server error. Please try again later.",
+    "loadFailed": "Failed to load data. Please check if the backend is running.",
+    "saveFailed": "Failed to save. Please try again.",
+    "deleteFailed": "Failed to delete. Please try again.",
+    "searchFailed": "Failed to search. Please try again.",
+    "reorderFailed": "Failed to reorder fields. Please try again.",
+    "fieldLabelRequired": "Field label is required",
+    "selectOptionsRequired": "Please provide at least one option for select fields",
+    "deleteTypeFailed": "Failed to delete type. It may be in use by media items.",
+    "invalidImageType": "Please select a valid image file (JPEG, PNG, GIF, or WebP).",
+    "imageTooLarge": "Image file size must be less than 10MB.",
+    "uploadFailed": "Failed to upload image. Please try again.",
+    "partialUploadFailed": "Item saved, but some images failed to upload:"
+  },
+  "importExport": {
+    "title": "Import / Export",
+    "export": {
+      "title": "Export",
+      "withConfig": "Export with Configuration",
+      "withConfigDesc": "Export all media types, fields, and data",
+      "dataOnly": "Export Data Only",
+      "dataOnlyDesc": "Export only media items (no configuration)",
+      "success": "Export successful",
+      "error": "Export failed"
+    },
+    "import": {
+      "title": "Import",
+      "withConfig": "Import with Configuration",
+      "withConfigDesc": "Import types, fields, and data (overwrites current configuration)",
+      "dataOnly": "Import Data Only",
+      "dataOnlyDesc": "Import only media items (skips fields that don't exist)",
+      "warningConfig": "Warning: This will overwrite your current configuration (types and fields). All existing data will be replaced.",
+      "warningData": "Warning: Fields that don't exist in your configuration will be skipped during import.",
+      "selectFile": "Select JSON file",
+      "success": "Import successful",
+      "error": "Import failed",
+      "confirm": "Are you sure you want to import?",
+      "fileRequired": "Please select a file",
+      "importing": "Importing data, please wait..."
+    }
+  }
+}

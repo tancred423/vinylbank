@@ -1,0 +1,177 @@
+{
+  "app": {
+    "title": "VinylBank",
+    "loading": "Laden..."
+  },
+  "nav": {
+    "collection": "Sammlung",
+    "config": "Konfiguration",
+    "importExport": "Import/Export"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "close": "Schließen",
+    "confirm": "Bestätigen",
+    "yes": "Ja",
+    "no": "Nein",
+    "required": "Erforderlich",
+    "optional": "Optional",
+    "select": "Auswählen..."
+  },
+  "collection": {
+    "title": "Meine Sammlung",
+    "addItem": "Artikel hinzufügen",
+    "editItem": "Artikel bearbeiten",
+    "deleteItem": "Artikel löschen",
+    "searchPlaceholder": "Suche...",
+    "filterByType": "Nach Typ filtern",
+    "allTypes": "Alle Medien",
+    "noResults": "Keine Ergebnisse gefunden",
+    "tryDifferentSearch": "Versuche einen anderen Suchbegriff",
+    "noItemsYet": "Noch keine Artikel",
+    "noTypeItemsYet": "Noch keine {type} Artikel",
+    "startAddingFirstItem": "Beginne, indem du deinen ersten Medienartikel hinzufügst!",
+    "confirmDelete": "Bist du sicher, dass du diesen Artikel löschen möchtest?",
+    "typeChangeHint": "Das Ändern des Mediums löscht inkompatible Felddaten.",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "pageInfo": "Seite {current} von {total}",
+    "allStatuses": "Alle Status"
+  },
+  "item": {
+    "title": "Titel",
+    "type": "Medium",
+    "status": "Ausleihstatus",
+    "notes": "Notizen",
+    "coverImage": "Coverbild",
+    "borrowedBy": "Entliehen an",
+    "borrowedDate": "Ausleihdatum",
+    "createdAt": "Erstellt am",
+    "updatedAt": "Aktualisiert am"
+  },
+  "status": {
+    "available": "Verfügbar",
+    "borrowed": "Entliehen",
+    "lost": "Verloren"
+  },
+  "borrow": {
+    "borrowedFor": "Entliehen seit",
+    "years": "{count} Jahr | {count} Jahren",
+    "months": "{count} Monat | {count} Monaten",
+    "weeks": "{count} Woche | {count} Wochen",
+    "days": "{count} Tag | {count} Tagen"
+  },
+  "config": {
+    "title": "Konfiguration",
+    "addType": "Medium hinzufügen",
+    "editType": "Medium bearbeiten",
+    "deleteType": "Medium löschen",
+    "typeName": "Name des Mediums",
+    "addField": "Feld hinzufügen",
+    "editField": "Feld bearbeiten",
+    "deleteField": "Feld löschen",
+    "noFields": "Keine Felder konfiguriert. Füge Felder hinzu, die dieses Medium haben soll.",
+    "defaultFieldsHint": "Medium, Titel und Ausleihstatus sind automatisch enthalten. Füge hier eigene Felder hinzu.",
+    "fieldLabel": "Name des Feldes",
+    "fieldType": "Feldtyp",
+    "fieldRequired": "Pflichtfeld",
+    "fieldOptions": "Optionen (eine pro Zeile)",
+    "optionsHint": "Eine Option pro Zeile eingeben",
+    "checkboxOptions": "Checkbox-Beschriftungen",
+    "checkboxOptionsHint": "Eine Beschriftung pro Zeile eingeben",
+    "radioOptions": "Optionsfeld-Optionen",
+    "radioOptionsHint": "Eine Option pro Zeile eingeben",
+    "addOption": "Option hinzufügen",
+    "confirmDeleteType": "Bist du sicher, dass du dieses Medium löschen möchtest? Alle Artikel dieses Mediums und deren Daten werden dauerhaft gelöscht!",
+    "confirmDeleteField": "Bist du sicher, dass du dieses Feld löschen möchtest? Alle in diesem Feld gespeicherten Daten für alle Artikel werden dauerhaft gelöscht.",
+    "dragToReorder": "Zum Neuordnen ziehen",
+    "dropHere": "Hier ablegen"
+  },
+  "fieldTypes": {
+    "text": "Text",
+    "number": "Zahl",
+    "date": "Datum",
+    "select": "Dropdown-Liste",
+    "textarea": "Textbereich",
+    "checkbox": "Checkboxen",
+    "radio": "Optionsfelder",
+    "image": "Bild",
+    "rating": "Bewertung",
+    "keyvalue": "Zuordnungs-Liste"
+  },
+  "keyvalue": {
+    "addPair": "Zuordnung hinzufügen",
+    "keyPlaceholder": "z.B. Schauspieler",
+    "valuePlaceholder": "z.B. Rolle",
+    "removePair": "Zuordnung entfernen",
+    "showMore": "{count} weitere",
+    "requiresAtLeastOne": "{field} erfordert mindestens eine Zuordnung",
+    "incompletePairs": "{field} hat unvollständige Zuordnungen. Bitte beide Felder ausfüllen oder leere Zeilen entfernen."
+  },
+  "rating": {
+    "stars": "{count} Sterne",
+    "clear": "Bewertung löschen"
+  },
+  "image": {
+    "remove": "Bild entfernen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "theme": "Design",
+    "darkMode": "Dunkelmodus",
+    "lightMode": "Hellmodus",
+    "auto": "Automatisch"
+  },
+  "errors": {
+    "required": "Dieses Feld ist erforderlich",
+    "invalid": "Ungültiger Wert",
+    "networkError": "Netzwerkfehler. Bitte versuche es erneut.",
+    "serverError": "Serverfehler. Bitte versuche es später erneut.",
+    "loadFailed": "Fehler beim Laden der Daten. Bitte überprüfe, ob das Backend läuft.",
+    "saveFailed": "Fehler beim Speichern. Bitte versuche es erneut.",
+    "deleteFailed": "Fehler beim Löschen. Bitte versuche es erneut.",
+    "searchFailed": "Fehler bei der Suche. Bitte versuche es erneut.",
+    "reorderFailed": "Fehler beim Neuordnen der Felder. Bitte versuche es erneut.",
+    "fieldLabelRequired": "Feldbezeichnung ist erforderlich",
+    "selectOptionsRequired": "Bitte gib mindestens eine Option für Auswahlfelder an",
+    "deleteTypeFailed": "Fehler beim Löschen des Typs. Er wird möglicherweise noch verwendet.",
+    "invalidImageType": "Bitte wähle eine gültige Bilddatei (JPEG, PNG, GIF oder WebP).",
+    "imageTooLarge": "Die Bilddatei darf maximal 10MB groß sein.",
+    "uploadFailed": "Fehler beim Hochladen des Bildes. Bitte versuche es erneut.",
+    "partialUploadFailed": "Artikel gespeichert, aber einige Bilder konnten nicht hochgeladen werden:"
+  },
+  "importExport": {
+    "title": "Import / Export",
+    "export": {
+      "title": "Export",
+      "withConfig": "Mit Konfiguration exportieren",
+      "withConfigDesc": "Alle Medientypen, Felder und Daten exportieren",
+      "dataOnly": "Nur Daten exportieren",
+      "dataOnlyDesc": "Nur Medienartikel exportieren (keine Konfiguration)",
+      "success": "Export erfolgreich",
+      "error": "Export fehlgeschlagen"
+    },
+    "import": {
+      "title": "Import",
+      "withConfig": "Mit Konfiguration importieren",
+      "withConfigDesc": "Medien, Felder und Daten importieren (überschreibt aktuelle Konfiguration)",
+      "dataOnly": "Nur Daten importieren",
+      "dataOnlyDesc": "Nur Medienartikel importieren (überspringt Felder, die nicht existieren)",
+      "warningConfig": "Warnung: Dies überschreibt Ihre aktuelle Konfiguration (Medien und Felder). Alle vorhandenen Daten werden ersetzt.",
+      "warningData": "Warnung: Felder, die nicht in Ihrer Konfiguration existieren, werden beim Import übersprungen.",
+      "selectFile": "JSON-Datei auswählen",
+      "success": "Import erfolgreich",
+      "error": "Import fehlgeschlagen",
+      "confirm": "Sind Sie sicher, dass Sie importieren möchten?",
+      "fileRequired": "Bitte wählen Sie eine Datei aus",
+      "importing": "Daten werden importiert, bitte warten..."
+    }
+  }
+}
