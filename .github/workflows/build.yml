@@ -43,7 +43,7 @@ jobs:
 
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: v1.x
+          deno-version: v2.5.6
 
       - name: Format check
         working-directory: backend
