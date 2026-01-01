@@ -4,8 +4,7 @@ A self-hosted app to manage your physical media collection — CDs, DVDs, Blu-ra
 Track what you own, who borrowed it, and add notes to your items.
 You add own mediums and customise the fields that each medium has.
 
-<!-- TODO: Add demo video/gif here -->
-<!-- ![VinylBank Demo](demo.gif) -->
+<img width="1700" height="1273" alt="2026_01_01_GOziyrC2Is" src="https://github.com/user-attachments/assets/eab3be80-212c-4942-85cc-626810936d52" />
 
 ## Quick Start
 
