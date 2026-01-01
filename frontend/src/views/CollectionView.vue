@@ -161,7 +161,10 @@ const currentPage = ref(getPageFromUrl());
 const itemsPerPage = 24;
 const totalPages = ref(1);
 
+let isUpdatingUrl = false;
+
 function updateUrlParams() {
+  isUpdatingUrl = true;
   const query: Record<string, string> = {};
 
   if (selectedTypeFilter.value !== "all") {
@@ -178,6 +181,10 @@ function updateUrlParams() {
   }
 
   router.replace({ query });
+  
+  setTimeout(() => {
+    isUpdatingUrl = false;
+  }, 0);
 }
 
 const formData = ref<
@@ -250,6 +257,36 @@ watch(
       formData.value.borrowed_date = getCurrentDate();
     }
   }
+);
+
+watch(
+  () => route.query,
+  async (newQuery, oldQuery) => {
+    if (oldQuery === undefined) return;
+    
+    if (isUpdatingUrl) return;
+    
+    const newQueryStr = JSON.stringify(newQuery);
+    const oldQueryStr = JSON.stringify(oldQuery);
+    if (newQueryStr === oldQueryStr) return;
+    
+    const newTypeFilter = getTypeFilterFromUrl();
+    const newStatusFilter = getStatusFilterFromUrl();
+    const newPage = getPageFromUrl();
+    const newSearch = getSearchFromUrl();
+    
+    selectedTypeFilter.value = newTypeFilter;
+    selectedStatusFilter.value = newStatusFilter;
+    currentPage.value = newPage;
+    searchQuery.value = newSearch;
+    
+    if (newSearch.trim() || newStatusFilter !== "all") {
+      await handleSearch(false);
+    } else {
+      await loadData(true);
+    }
+  },
+  { deep: true }
 );
 
 onMounted(async () => {

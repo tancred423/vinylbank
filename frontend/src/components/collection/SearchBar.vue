@@ -14,6 +14,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onBeforeUnmount } from "vue";
+
 defineProps<{
   modelValue: string;
   placeholder?: string;
@@ -25,16 +27,36 @@ const emit = defineEmits<{
   (e: "clear"): void;
 }>();
 
+const debounceTimer = ref<ReturnType<typeof setTimeout> | null>(null);
+const debounceDelayMs = 300;
+
 function handleInput(event: Event) {
   const value = (event.target as HTMLInputElement).value;
   emit("update:modelValue", value);
-  emit("search");
+  
+  if (debounceTimer.value) {
+    clearTimeout(debounceTimer.value);
+  }
+  
+  debounceTimer.value = setTimeout(() => {
+    emit("search");
+  }, debounceDelayMs);
 }
 
 function handleClear() {
+  if (debounceTimer.value) {
+    clearTimeout(debounceTimer.value);
+    debounceTimer.value = null;
+  }
   emit("update:modelValue", "");
   emit("clear");
 }
+
+onBeforeUnmount(() => {
+  if (debounceTimer.value) {
+    clearTimeout(debounceTimer.value);
+  }
+});
 </script>
 
 <style scoped>
