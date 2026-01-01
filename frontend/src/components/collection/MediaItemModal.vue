@@ -312,7 +312,7 @@
                 :id="`field-${field.field_key}`"
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                @change="(e) => handleFieldImageUpload(e, field.field_key)"
+                @change="(e: Event) => handleFieldImageUpload(e, field.field_key)"
               />
               <div v-else class="image-preview">
                 <img :src="getFieldValueAsString(field.field_key)" :alt="field.field_label" />
@@ -460,7 +460,7 @@ const localFormData = ref(props.formData);
 
 watch(
   () => props.formData,
-  (newData) => {
+  (newData: Partial<MediaItem> & { attributes?: Record<string, string | number | boolean> }) => {
     localFormData.value = newData;
   },
   { deep: true }
@@ -470,9 +470,14 @@ const STANDARD_FIELDS = ["notes", "cover_image"];
 
 const currentTypeFields = computed(() => {
   if (!localFormData.value.type_id) return [];
-  const config = props.typeConfigs.find((t) => t.id === localFormData.value.type_id);
+  const config = props.typeConfigs.find(
+    (t: MediaTypeConfig) => t.id === localFormData.value.type_id
+  );
   if (!config) return [];
-  return config.fields.sort((a, b) => a.display_order - b.display_order);
+  return config.fields.sort(
+    (a: MediaTypeConfig["fields"][0], b: MediaTypeConfig["fields"][0]) =>
+      a.display_order - b.display_order
+  );
 });
 
 function isStandardField(fieldKey: string): boolean {

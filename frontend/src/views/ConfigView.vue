@@ -487,7 +487,7 @@ async function handleDrop(
       field.display_order = index;
     });
 
-    const configIndex = typeConfigs.value.findIndex((c) => c.id === typeConfig.id);
+    const configIndex = typeConfigs.value.findIndex((c: MediaTypeConfig) => c.id === typeConfig.id);
     if (configIndex !== -1) {
       typeConfigs.value[configIndex].fields = reorderedFields;
     }
@@ -532,7 +532,8 @@ function generateUniqueFieldKey(baseKey: string): string {
   let counter = 1;
   const isDuplicate = (key: string) =>
     fields.some(
-      (f) => f.field_key === key && (!editingField.value || f.id !== editingField.value.id)
+      (f: MediaTypeField) =>
+        f.field_key === key && (!editingField.value || f.id !== editingField.value.id)
     );
 
   while (!candidate || isDuplicate(candidate)) {
@@ -544,7 +545,7 @@ function generateUniqueFieldKey(baseKey: string): string {
 
 watch(
   () => fieldFormData.value.field_label,
-  (newLabel) => {
+  (newLabel: string) => {
     if (!editingField.value && newLabel) {
       generateFieldKey();
     }
@@ -727,8 +728,8 @@ async function saveField() {
     if (fieldFormData.value.field_type === "select") {
       const options = fieldOptionsText.value
         .split("\n")
-        .map((o) => o.trim())
-        .filter((o) => o.length > 0);
+        .map((o: string) => o.trim())
+        .filter((o: string) => o.length > 0);
       if (options.length === 0) {
         alert(t("errors.selectOptionsRequired"));
         return;
@@ -742,8 +743,8 @@ async function saveField() {
     ) {
       const options = fieldOptionsText.value
         .split("\n")
-        .map((o) => o.trim())
-        .filter((o) => o.length > 0);
+        .map((o: string) => o.trim())
+        .filter((o: string) => o.length > 0);
       if (options.length === 0) {
         alert(t("errors.selectOptionsRequired"));
         return;

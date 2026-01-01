@@ -33,11 +33,11 @@ const debounceDelayMs = 300;
 function handleInput(event: Event) {
   const value = (event.target as HTMLInputElement).value;
   emit("update:modelValue", value);
-  
+
   if (debounceTimer.value) {
     clearTimeout(debounceTimer.value);
   }
-  
+
   debounceTimer.value = setTimeout(() => {
     emit("search");
   }, debounceDelayMs);

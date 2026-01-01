@@ -97,7 +97,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter, type LocationQuery } from "vue-router";
 import { api, configApi, uploadApi, type MediaTypeConfig } from "../services/api";
 import type { MediaItem, MediaItemWithType, MediaType } from "../types/media";
 import SearchBar from "../components/collection/SearchBar.vue";
@@ -181,7 +181,7 @@ function updateUrlParams() {
   }
 
   router.replace({ query });
-  
+
   setTimeout(() => {
     isUpdatingUrl = false;
   }, 0);
@@ -214,7 +214,7 @@ watch(
 
 watch(
   () => formData.value.type_id,
-  async (newTypeId) => {
+  async (newTypeId: number | undefined) => {
     if (newTypeId !== lastTypeId && newTypeId !== undefined && newTypeId !== null) {
       const previousTypeId = lastTypeId;
       lastTypeId = newTypeId;
@@ -232,9 +232,11 @@ watch(
         }
 
         if (previousTypeId !== undefined) {
-          const config = typeConfigs.value.find((t) => t.id === newTypeId);
+          const config = typeConfigs.value.find((t: MediaTypeConfig) => t.id === newTypeId);
           if (config) {
-            const newTypeFields = config.fields.map((f) => f.field_key);
+            const newTypeFields = config.fields.map(
+              (f: MediaTypeConfig["fields"][0]) => f.field_key
+            );
             const attributesToKeep: Record<string, string | number | boolean> = {};
             for (const key of newTypeFields) {
               if (formData.value.attributes![key] !== undefined) {
@@ -252,7 +254,7 @@ watch(
 
 watch(
   () => formData.value.status,
-  (newStatus) => {
+  (newStatus: "available" | "borrowed" | "lost" | undefined) => {
     if (newStatus === "borrowed" && !formData.value.borrowed_date) {
       formData.value.borrowed_date = getCurrentDate();
     }
@@ -261,25 +263,25 @@ watch(
 
 watch(
   () => route.query,
-  async (newQuery, oldQuery) => {
+  async (newQuery: LocationQuery, oldQuery: LocationQuery | undefined) => {
     if (oldQuery === undefined) return;
-    
+
     if (isUpdatingUrl) return;
-    
+
     const newQueryStr = JSON.stringify(newQuery);
     const oldQueryStr = JSON.stringify(oldQuery);
     if (newQueryStr === oldQueryStr) return;
-    
+
     const newTypeFilter = getTypeFilterFromUrl();
     const newStatusFilter = getStatusFilterFromUrl();
     const newPage = getPageFromUrl();
     const newSearch = getSearchFromUrl();
-    
+
     selectedTypeFilter.value = newTypeFilter;
     selectedStatusFilter.value = newStatusFilter;
     currentPage.value = newPage;
     searchQuery.value = newSearch;
-    
+
     if (newSearch.trim() || newStatusFilter !== "all") {
       await handleSearch(false);
     } else {
@@ -447,7 +449,7 @@ async function clearSearch() {
 
 function getTypeName(typeId: number | "all"): string {
   if (typeId === "all") return "All";
-  const type = mediaTypes.value.find((t) => t.id === typeId);
+  const type = mediaTypes.value.find((t: MediaType) => t.id === typeId);
   return type?.name || "";
 }
 
@@ -460,8 +462,10 @@ function getTypeCounts(): Record<number, number> {
   const counts: Record<number, number> = {};
   if (!countsLoaded.value) return counts;
 
-  mediaTypes.value.forEach((type) => {
-    counts[type.id] = allItemsForCounts.value.filter((item) => item.type_id === type.id).length;
+  mediaTypes.value.forEach((type: MediaType) => {
+    counts[type.id] = allItemsForCounts.value.filter(
+      (item: MediaItemWithType) => item.type_id === type.id
+    ).length;
   });
 
   return counts;
@@ -523,7 +527,7 @@ function openEditModal(item: MediaItemWithType) {
     attributes: {},
   };
 
-  const config = typeConfigs.value.find((t) => t.id === item.type_id);
+  const config = typeConfigs.value.find((t: MediaTypeConfig) => t.id === item.type_id);
   if (config) {
     const STANDARD_FIELDS = ["notes", "cover_image"];
     for (const field of config.fields) {
@@ -568,7 +572,7 @@ async function saveItem(
   formData: Partial<MediaItem> & { attributes?: Record<string, string | number | boolean> }
 ) {
   try {
-    const config = typeConfigs.value.find((t) => t.id === formData.type_id);
+    const config = typeConfigs.value.find((t: MediaTypeConfig) => t.id === formData.type_id);
     if (!config) return;
 
     for (const field of config.fields) {
@@ -812,8 +816,13 @@ async function refreshCounts() {
 }
 
 function getItemTypeFields(typeId: number) {
-  const config = typeConfigs.value.find((t) => t.id === typeId);
-  return config?.fields.sort((a, b) => a.display_order - b.display_order) || [];
+  const config = typeConfigs.value.find((t: MediaTypeConfig) => t.id === typeId);
+  return (
+    config?.fields.sort(
+      (a: MediaTypeConfig["fields"][0], b: MediaTypeConfig["fields"][0]) =>
+        a.display_order - b.display_order
+    ) || []
+  );
 }
 
 function getCurrentDate(): string {
