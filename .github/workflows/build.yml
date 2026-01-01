@@ -61,7 +61,7 @@ jobs:
     name: Build and Push Images
     runs-on: ubuntu-latest
     needs: [check-frontend, check-backend]
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
