@@ -14,7 +14,7 @@ export interface MediaTypeField {
     | "rating"
     | "keyvalue";
   required: boolean;
-  options?: string; // JSON string for select options
+  options?: string;
   display_order: number;
   created_at?: string;
 }

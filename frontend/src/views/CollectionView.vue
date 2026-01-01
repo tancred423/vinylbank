@@ -97,6 +97,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
 import { api, configApi, uploadApi, type MediaTypeConfig } from "../services/api";
 import type { MediaItem, MediaItemWithType, MediaType } from "../types/media";
 import SearchBar from "../components/collection/SearchBar.vue";
@@ -107,6 +108,34 @@ import MediaItemModal from "../components/collection/MediaItemModal.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 
 const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
+
+function getTypeFilterFromUrl(): number | "all" {
+  const medium = route.query.medium as string | undefined;
+  if (!medium || medium === "all") return "all";
+  const parsed = parseInt(medium);
+  return isNaN(parsed) ? "all" : parsed;
+}
+
+function getStatusFilterFromUrl(): "all" | "available" | "borrowed" | "lost" {
+  const status = route.query.status as string | undefined;
+  if (status === "available" || status === "borrowed" || status === "lost") {
+    return status;
+  }
+  return "all";
+}
+
+function getPageFromUrl(): number {
+  const page = route.query.page as string | undefined;
+  if (!page) return 1;
+  const parsed = parseInt(page);
+  return isNaN(parsed) || parsed < 1 ? 1 : parsed;
+}
+
+function getSearchFromUrl(): string {
+  return (route.query.search as string) || "";
+}
 
 const mediaItems = ref<MediaItemWithType[]>([]);
 const allMediaItems = ref<MediaItemWithType[]>([]);
@@ -121,24 +150,35 @@ const detailItem = ref<MediaItemWithType | null>(null);
 const editingItem = ref<MediaItemWithType | null>(null);
 const formHasChanges = ref(false);
 const initialFormData = ref<string>("");
-const searchQuery = ref("");
+const searchQuery = ref(getSearchFromUrl());
 const isSearching = ref(false);
-const selectedTypeFilter = ref<number | "all">(
-  localStorage.getItem("vinylbank-type-filter")
-    ? localStorage.getItem("vinylbank-type-filter") === "all"
-      ? "all"
-      : parseInt(localStorage.getItem("vinylbank-type-filter")!)
-    : "all"
-);
+const selectedTypeFilter = ref<number | "all">(getTypeFilterFromUrl());
 const selectedStatusFilter = ref<"all" | "available" | "borrowed" | "lost">(
-  (localStorage.getItem("vinylbank-status-filter") as "all" | "available" | "borrowed" | "lost") ||
-    "all"
+  getStatusFilterFromUrl()
 );
 
-// Pagination
-const currentPage = ref(1);
+const currentPage = ref(getPageFromUrl());
 const itemsPerPage = 24;
 const totalPages = ref(1);
+
+function updateUrlParams() {
+  const query: Record<string, string> = {};
+
+  if (selectedTypeFilter.value !== "all") {
+    query.medium = String(selectedTypeFilter.value);
+  }
+  if (selectedStatusFilter.value !== "all") {
+    query.status = selectedStatusFilter.value;
+  }
+  if (currentPage.value > 1) {
+    query.page = String(currentPage.value);
+  }
+  if (searchQuery.value.trim()) {
+    query.search = searchQuery.value.trim();
+  }
+
+  router.replace({ query });
+}
 
 const formData = ref<
   Partial<MediaItem> & { attributes?: Record<string, string | number | boolean> }
@@ -213,7 +253,11 @@ watch(
 );
 
 onMounted(async () => {
-  await loadData();
+  if (searchQuery.value.trim() || selectedStatusFilter.value !== "all") {
+    await handleSearch(false);
+  } else {
+    await loadData(true);
+  }
   document.addEventListener("keydown", handleEscapeKey);
 });
 
@@ -221,7 +265,7 @@ onBeforeUnmount(() => {
   document.removeEventListener("keydown", handleEscapeKey);
 });
 
-async function loadData() {
+async function loadData(preservePage: boolean = false) {
   try {
     loading.value = true;
     const typeParam = selectedTypeFilter.value === "all" ? undefined : selectedTypeFilter.value;
@@ -257,8 +301,14 @@ async function loadData() {
       typeConfigs.value = [];
     }
 
-    // Reset to page 1 and update pagination
-    currentPage.value = 1;
+    if (!preservePage) {
+      currentPage.value = 1;
+    }
+
+    const maxPage = Math.ceil(allMediaItems.value.length / itemsPerPage);
+    if (currentPage.value > maxPage) {
+      currentPage.value = Math.max(1, maxPage);
+    }
     updatePagination();
   } catch (error) {
     console.error("Failed to load data:", error);
@@ -275,15 +325,17 @@ function updatePagination() {
   mediaItems.value = allMediaItems.value.slice(start, end);
 }
 
-function goToPage(page: number) {
+function goToPage(page: number, scrollToTop: boolean = true) {
   if (page < 1 || page > totalPages.value) return;
   currentPage.value = page;
   updatePagination();
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  updateUrlParams();
+  if (scrollToTop) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
 
-async function handleSearch() {
+async function handleSearch(resetPage: boolean = true) {
   try {
     isSearching.value = true;
     loading.value = true;
@@ -291,12 +343,29 @@ async function handleSearch() {
     const statusParam =
       selectedStatusFilter.value === "all" ? undefined : selectedStatusFilter.value;
 
-    // If search query is empty but status filter is set, still search (shows all with that status)
     const query = searchQuery.value.trim() || "";
-    const results = await api.searchMediaItems(query, typeParam, statusParam);
+
+    const [results, configs] = await Promise.all([
+      api.searchMediaItems(query, typeParam, statusParam),
+      typeConfigs.value.length === 0
+        ? configApi.getTypeConfigs()
+        : Promise.resolve(typeConfigs.value),
+    ]);
+
     allMediaItems.value = results;
-    currentPage.value = 1;
+    if (configs !== typeConfigs.value) {
+      typeConfigs.value = configs;
+    }
+
+    if (mediaTypes.value.length === 0) {
+      mediaTypes.value = await api.getMediaTypes();
+    }
+
+    if (resetPage) {
+      currentPage.value = 1;
+    }
     updatePagination();
+    updateUrlParams();
   } catch (error) {
     console.error("Failed to search:", error);
     alert(t("errors.searchFailed"));
@@ -307,15 +376,16 @@ async function handleSearch() {
 }
 
 function handleStatusChange() {
-  localStorage.setItem("vinylbank-status-filter", selectedStatusFilter.value);
+  currentPage.value = 1;
+  updateUrlParams();
   handleSearch();
 }
 
 async function setTypeFilter(typeId: number | "all") {
   selectedTypeFilter.value = typeId;
-  localStorage.setItem("vinylbank-type-filter", String(typeId));
+  currentPage.value = 1;
+  updateUrlParams();
 
-  // If there's a search query or status filter, use search; otherwise load all
   if (
     (searchQuery.value && searchQuery.value.trim().length > 0) ||
     selectedStatusFilter.value !== "all"
@@ -328,7 +398,9 @@ async function setTypeFilter(typeId: number | "all") {
 
 async function clearSearch() {
   searchQuery.value = "";
-  // If status filter is set, still use search; otherwise load all
+  currentPage.value = 1;
+  updateUrlParams();
+
   if (selectedStatusFilter.value !== "all") {
     await handleSearch();
   } else {
@@ -469,7 +541,7 @@ async function saveItem(
         : formData.attributes?.[field.field_key];
 
       if (field.field_type === "keyvalue") {
-        let pairs: Array<{ key: string; value: string }> = [];
+        let pairs: Array<{ key: string | null; value: string | null }> = [];
         if (value && typeof value === "string") {
           try {
             const parsed = JSON.parse(value);
@@ -481,17 +553,14 @@ async function saveItem(
           }
         }
 
-        if (field.required && pairs.length === 0) {
-          alert(t("keyvalue.requiresAtLeastOne", { field: field.field_label }));
-          return;
-        }
-
-        const hasIncompletePairs = pairs.some(
-          (pair) => pair.key.trim() === "" || pair.value.trim() === ""
+        const validPairs = pairs.filter(
+          (pair) =>
+            (pair.key !== null && pair.key !== undefined && String(pair.key).trim() !== "") ||
+            (pair.value !== null && pair.value !== undefined && String(pair.value).trim() !== "")
         );
 
-        if (hasIncompletePairs) {
-          alert(t("keyvalue.incompletePairs", { field: field.field_label }));
+        if (field.required && validPairs.length === 0) {
+          alert(t("keyvalue.requiresAtLeastOne", { field: field.field_label }));
           return;
         }
       } else if (field.required) {
@@ -524,7 +593,44 @@ async function saveItem(
         continue;
       }
 
-      if (field.field_type === "image") {
+      if (field.field_type === "keyvalue") {
+        let pairs: Array<{ key: string | null; value: string | null }> = [];
+        if (value && typeof value === "string") {
+          try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+              pairs = parsed;
+            }
+          } catch {
+            pairs = [];
+          }
+        }
+
+        const processedPairs = pairs
+          .filter((pair) => {
+            const key = pair.key !== null && pair.key !== undefined ? String(pair.key).trim() : "";
+            const value =
+              pair.value !== null && pair.value !== undefined ? String(pair.value).trim() : "";
+            return key !== "" || value !== "";
+          })
+          .map((pair) => {
+            const key = pair.key !== null && pair.key !== undefined ? String(pair.key).trim() : "";
+            const value =
+              pair.value !== null && pair.value !== undefined ? String(pair.value).trim() : "";
+            return {
+              key: key !== "" ? key : null,
+              value: value !== "" ? value : null,
+            };
+          });
+
+        if (processedPairs.length > 0) {
+          if (STANDARD_FIELDS.includes(field.field_key)) {
+            itemData[field.field_key] = JSON.stringify(processedPairs);
+          } else {
+            processedAttributes[field.field_key] = JSON.stringify(processedPairs);
+          }
+        }
+      } else if (field.field_type === "image") {
         if (typeof value === "string" && value.startsWith("data:image")) {
           imagesToUpload.push({
             key: field.field_key,
@@ -583,9 +689,17 @@ async function saveItem(
       }
     }
 
-    await loadData();
+    const scrollY = window.scrollY;
+
+    if (searchQuery.value.trim() || selectedStatusFilter.value !== "all") {
+      await handleSearch(false);
+    } else {
+      await loadData(true);
+    }
     await refreshCounts();
     closeModal();
+
+    window.scrollTo({ top: scrollY, behavior: "instant" });
 
     if (uploadErrors.length > 0) {
       alert(`${t("errors.partialUploadFailed")}\n${uploadErrors.join("\n")}`);
@@ -634,10 +748,18 @@ async function deleteItem() {
   }
 
   try {
+    const scrollY = window.scrollY;
     await api.deleteMediaItem(editingItem.value.id!);
-    await loadData();
+
+    if (searchQuery.value.trim() || selectedStatusFilter.value !== "all") {
+      await handleSearch(false);
+    } else {
+      await loadData(true);
+    }
     await refreshCounts();
     closeModal();
+
+    window.scrollTo({ top: scrollY, behavior: "instant" });
   } catch (error) {
     console.error("Failed to delete item:", error);
     alert(t("errors.deleteFailed"));

@@ -30,7 +30,7 @@ async function createConnectionWithRetry(): Promise<mysql.Connection> {
         throw error;
       }
 
-      const delayMs = DB_RETRY_DELAY_MS * Math.min(attempt, 5); // mild backoff
+      const delayMs = DB_RETRY_DELAY_MS * Math.min(attempt, 5);
       const message = error instanceof Error ? error.message : String(error);
       console.warn(`[DB] Connection failed (${message}). Retrying in ${delayMs}ms...`);
       await new Promise((resolve) => setTimeout(resolve, delayMs));

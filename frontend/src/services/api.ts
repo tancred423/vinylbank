@@ -65,7 +65,6 @@ export const api = {
   },
 };
 
-// Upload API
 export const uploadApi = {
   async uploadCoverImage(itemId: number, file: File): Promise<{ url: string; filename: string }> {
     const formData = new FormData();
@@ -118,7 +117,6 @@ export const uploadApi = {
   },
 };
 
-// Config API
 export interface MediaTypeField {
   id?: number;
   type_id: number;

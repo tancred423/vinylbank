@@ -111,8 +111,7 @@
     "valuePlaceholder": "e.g. Role",
     "removePair": "Remove assignment",
     "showMore": "{count} more",
-    "requiresAtLeastOne": "{field} requires at least one assignment",
-    "incompletePairs": "{field} has incomplete assignments. Please fill both fields or remove empty rows."
+    "requiresAtLeastOne": "{field} requires at least one assignment"
   },
   "rating": {
     "stars": "{count} stars",

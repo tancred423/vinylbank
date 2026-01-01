@@ -24,10 +24,9 @@ export const mediaAttributes = mysqlTable("media_attributes", {
   id: int("id").primaryKey().autoincrement(),
   media_id: int("media_id").notNull(),
   attribute_key: varchar("attribute_key", { length: 255 }).notNull(),
-  attribute_value: text("attribute_value").$type<string>(), // Using text which maps to LONGTEXT in MySQL
+  attribute_value: text("attribute_value").$type<string>(),
 });
 
-// Relations
 export const mediaTypesRelations = relations(mediaTypes, ({ many }) => ({
   mediaItems: many(mediaItems),
 }));
@@ -65,8 +64,8 @@ export const mediaTypeFields = mysqlTable("media_type_fields", {
     "rating",
     "keyvalue",
   ]).notNull().default("text"),
-  required: int("required").notNull().default(0), // MySQL uses tinyint(1) for boolean
-  options: text("options"), // JSON string for select options
+  required: int("required").notNull().default(0),
+  options: text("options"),
   display_order: int("display_order").notNull().default(0),
   created_at: timestamp("created_at").notNull().defaultNow(),
 });

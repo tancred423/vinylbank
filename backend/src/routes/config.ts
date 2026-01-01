@@ -24,7 +24,6 @@ function buildUniqueFieldKey(baseKey: string, existingKeys: string[]): string {
   return candidate;
 }
 
-// Get all media types with their field configurations
 configRouter.get("/types", async (ctx) => {
   const db = await getDb();
 
@@ -60,7 +59,6 @@ configRouter.get("/types", async (ctx) => {
   ctx.response.body = typesWithFields;
 });
 
-// Create a new media type
 configRouter.post("/types", async (ctx) => {
   const db = await getDb();
   const body = await ctx.request.body.json() as { name: string };
@@ -78,7 +76,6 @@ configRouter.post("/types", async (ctx) => {
   ctx.response.body = { id: typeId, name: body.name };
 });
 
-// Update a media type name
 configRouter.put("/types/:id", async (ctx) => {
   const db = await getDb();
   const id = parseInt(ctx.params.id);
@@ -95,35 +92,26 @@ configRouter.put("/types/:id", async (ctx) => {
   ctx.response.body = { id, name: body.name };
 });
 
-// Delete a media type (cascade deletes fields and all items of this type)
 configRouter.delete("/types/:id", async (ctx) => {
   const db = await getDb();
   const id = parseInt(ctx.params.id);
 
-  // Get all media items of this type
   const itemsOfType = await db
     .select({ id: mediaItems.id })
     .from(mediaItems)
     .where(eq(mediaItems.type_id, id));
 
-  // Delete all attributes for items of this type
   for (const item of itemsOfType) {
     await db.delete(mediaAttributes).where(eq(mediaAttributes.media_id, item.id!));
   }
 
-  // Delete all media items of this type
   await db.delete(mediaItems).where(eq(mediaItems.type_id, id));
-
-  // Delete all fields for this type
   await db.delete(mediaTypeFields).where(eq(mediaTypeFields.type_id, id));
-
-  // Delete the type itself
   await db.delete(mediaTypes).where(eq(mediaTypes.id, id));
 
   ctx.response.status = 204;
 });
 
-// Add a field to a media type
 configRouter.post("/types/:typeId/fields", async (ctx) => {
   const db = await getDb();
   const typeId = parseInt(ctx.params.typeId);
@@ -169,13 +157,11 @@ configRouter.post("/types/:typeId/fields", async (ctx) => {
   };
 });
 
-// Update a field
 configRouter.put("/fields/:id", async (ctx) => {
   const db = await getDb();
   const id = parseInt(ctx.params.id);
   const body = await ctx.request.body.json() as Partial<MediaTypeField>;
 
-  // Build update object with only provided fields
   type UpdateData = {
     field_label?: string;
     field_type?:
@@ -209,12 +195,10 @@ configRouter.put("/fields/:id", async (ctx) => {
   ctx.response.body = { id, ...body };
 });
 
-// Delete a field and clean up associated attribute data
 configRouter.delete("/fields/:id", async (ctx) => {
   const db = await getDb();
   const id = parseInt(ctx.params.id);
 
-  // Get the field info before deleting
   const fieldRows = await db
     .select({ type_id: mediaTypeFields.type_id, field_key: mediaTypeFields.field_key })
     .from(mediaTypeFields)
@@ -224,13 +208,11 @@ configRouter.delete("/fields/:id", async (ctx) => {
   if (fieldRows.length > 0) {
     const { type_id, field_key } = fieldRows[0];
 
-    // Get all media items of this type
     const itemsOfType = await db
       .select({ id: mediaItems.id })
       .from(mediaItems)
       .where(eq(mediaItems.type_id, type_id!));
 
-    // Delete attributes with this field_key for all items of this type
     for (const item of itemsOfType) {
       await db
         .delete(mediaAttributes)
@@ -248,11 +230,9 @@ configRouter.delete("/fields/:id", async (ctx) => {
   ctx.response.status = 204;
 });
 
-// Export with configuration (types, fields, and data)
 configRouter.get("/export/full", async (ctx) => {
   const db = await getDb();
 
-  // Get all types with fields
   const types = await db.select().from(mediaTypes).orderBy(mediaTypes.name);
   const typesWithFields: MediaTypeConfig[] = await Promise.all(
     types.map(async (type) => {
@@ -281,7 +261,6 @@ configRouter.get("/export/full", async (ctx) => {
     }),
   );
 
-  // Get all media items with attributes and type names
   const items = await db
     .select({
       id: mediaItems.id,
@@ -346,11 +325,9 @@ configRouter.get("/export/full", async (ctx) => {
   ctx.response.body = exportData;
 });
 
-// Export data only
 configRouter.get("/export/data", async (ctx) => {
   const db = await getDb();
 
-  // Get all media items with attributes and type names
   const items = await db
     .select({
       id: mediaItems.id,
@@ -412,7 +389,6 @@ configRouter.get("/export/data", async (ctx) => {
   ctx.response.body = exportData;
 });
 
-// Import with configuration
 configRouter.post("/import/full", async (ctx) => {
   const db = await getDb();
   const body = await ctx.request.body.json() as {
@@ -427,10 +403,8 @@ configRouter.post("/import/full", async (ctx) => {
   }
 
   try {
-    // Import types and fields
     if (body.config.types) {
       for (const typeConfig of body.config.types) {
-        // Check if type exists by name
         const existingTypes = await db
           .select()
           .from(mediaTypes)
@@ -438,21 +412,17 @@ configRouter.post("/import/full", async (ctx) => {
 
         let typeId: number;
         if (existingTypes.length > 0) {
-          // Update existing type
           typeId = existingTypes[0].id!;
           await db.update(mediaTypes).set({ name: typeConfig.name }).where(
             eq(mediaTypes.id, typeId),
           );
         } else {
-          // Create new type
           const [result] = await db.insert(mediaTypes).values({ name: typeConfig.name });
           typeId = result.insertId;
         }
 
-        // Delete existing fields for this type
         await db.delete(mediaTypeFields).where(eq(mediaTypeFields.type_id, typeId));
 
-        // Import fields
         if (typeConfig.fields) {
           for (const field of typeConfig.fields) {
             await db.insert(mediaTypeFields).values({
@@ -469,13 +439,10 @@ configRouter.post("/import/full", async (ctx) => {
       }
     }
 
-    // Import data
     if (body.data.items) {
-      // Clear existing data
       await db.delete(mediaAttributes);
       await db.delete(mediaItems);
 
-      // Create a map of type names to type IDs
       const typeMapByName = new Map<string, number>();
       const allTypes = await db.select().from(mediaTypes);
       for (const type of allTypes) {
@@ -495,7 +462,6 @@ configRouter.post("/import/full", async (ctx) => {
           attributes?: Record<string, string>;
         }>
       ) {
-        // Try to find type by name first, then by ID
         let newTypeId: number | undefined;
         if (item.type_name) {
           newTypeId = typeMapByName.get(item.type_name);
@@ -523,7 +489,6 @@ configRouter.post("/import/full", async (ctx) => {
 
         const newItemId = result.insertId;
 
-        // Import attributes
         if (item.attributes) {
           for (const [key, value] of Object.entries(item.attributes)) {
             await db.insert(mediaAttributes).values({
@@ -547,7 +512,6 @@ configRouter.post("/import/full", async (ctx) => {
   }
 });
 
-// Import data only
 configRouter.post("/import/data", async (ctx) => {
   const db = await getDb();
   const body = await ctx.request.body.json() as {
@@ -561,16 +525,14 @@ configRouter.post("/import/data", async (ctx) => {
   }
 
   try {
-    // Get all existing types to map by name
     const allTypes = await db.select().from(mediaTypes);
     const typeMapByName = new Map<string, number>();
     for (const type of allTypes) {
       typeMapByName.set(type.name!, type.id!);
     }
 
-    // Get all existing fields to check if they exist
     const allFields = await db.select().from(mediaTypeFields);
-    const fieldMap = new Map<string, Set<string>>(); // type_id -> Set of field_keys
+    const fieldMap = new Map<string, Set<string>>();
     for (const field of allFields) {
       if (!fieldMap.has(String(field.type_id))) {
         fieldMap.set(String(field.type_id), new Set());
@@ -594,7 +556,6 @@ configRouter.post("/import/data", async (ctx) => {
         attributes?: Record<string, string>;
       }>
     ) {
-      // Try to find type by ID or name
       let typeId: number | undefined;
       if (item.type_id) {
         const type = allTypes.find((t) => t.id === item.type_id);
@@ -623,7 +584,6 @@ configRouter.post("/import/data", async (ctx) => {
 
       const newItemId = result.insertId;
 
-      // Import attributes only if field exists
       if (item.attributes) {
         const validFields = fieldMap.get(String(typeId)) || new Set();
         for (const [key, value] of Object.entries(item.attributes)) {

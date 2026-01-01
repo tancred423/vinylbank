@@ -6,7 +6,6 @@ import type { MediaItem, MediaItemWithType } from "../types/media.ts";
 
 export const mediaRouter = new Router({ prefix: "/api/media" });
 
-// Get all media items
 mediaRouter.get("/", async (ctx) => {
   const db = await getDb();
   const typeFilter = ctx.request.url.searchParams.get("type");
@@ -29,15 +28,12 @@ mediaRouter.get("/", async (ctx) => {
     .from(mediaItems)
     .innerJoin(mediaTypes, eq(mediaItems.type_id, mediaTypes.id));
 
-  // Build where conditions
   const whereConditions: ReturnType<typeof eq>[] = [];
 
-  // Apply type filter
   if (typeFilter && typeFilter !== "all" && !isNaN(parseInt(typeFilter))) {
     whereConditions.push(eq(mediaItems.type_id, parseInt(typeFilter)));
   }
 
-  // Apply status filter
   if (
     statusFilter && statusFilter !== "all" &&
     ["available", "borrowed", "lost"].includes(statusFilter)
@@ -51,7 +47,6 @@ mediaRouter.get("/", async (ctx) => {
 
   const result = await Promise.all(
     items.map(async (item) => {
-      // Get custom attributes
       const attributes = await db
         .select()
         .from(mediaAttributes)
@@ -87,7 +82,6 @@ mediaRouter.get("/", async (ctx) => {
   ctx.response.body = result;
 });
 
-// Search media items
 mediaRouter.get("/search", async (ctx) => {
   const db = await getDb();
   const query = ctx.request.url.searchParams.get("q") || "";
@@ -112,15 +106,12 @@ mediaRouter.get("/search", async (ctx) => {
       .from(mediaItems)
       .innerJoin(mediaTypes, eq(mediaItems.type_id, mediaTypes.id));
 
-    // Build where conditions
     const whereConditions: ReturnType<typeof eq>[] = [];
 
-    // Apply type filter
     if (typeFilter && typeFilter !== "all" && !isNaN(parseInt(typeFilter))) {
       whereConditions.push(eq(mediaItems.type_id, parseInt(typeFilter)));
     }
 
-    // Apply status filter
     if (
       statusFilter && statusFilter !== "all" &&
       ["available", "borrowed", "lost"].includes(statusFilter)
@@ -198,16 +189,13 @@ mediaRouter.get("/search", async (ctx) => {
     like(mediaTypes.name, searchTerm),
   ];
 
-  // Build where conditions
   const searchCondition = or(...searchConditions);
   const whereConditions: ReturnType<typeof eq>[] = [];
 
-  // Add type filter
   if (typeFilter && typeFilter !== "all" && !isNaN(parseInt(typeFilter))) {
     whereConditions.push(eq(mediaItems.type_id, parseInt(typeFilter)));
   }
 
-  // Add status filter
   if (
     statusFilter && statusFilter !== "all" &&
     ["available", "borrowed", "lost"].includes(statusFilter)
@@ -215,7 +203,6 @@ mediaRouter.get("/search", async (ctx) => {
     whereConditions.push(eq(mediaItems.status, statusFilter as "available" | "borrowed" | "lost"));
   }
 
-  // Apply all conditions - combine search condition with type/status filters using AND
   const items = await (whereConditions.length > 0
     ? baseSearchQuery.where(and(searchCondition, ...whereConditions)).orderBy(
       desc(mediaItems.created_at),
@@ -256,7 +243,6 @@ mediaRouter.get("/search", async (ctx) => {
     }),
   );
 
-  // Search attributes - but we'll filter by status when fetching the actual items
   const attributeMatches = await db
     .select({
       media_id: mediaAttributes.media_id,
@@ -297,17 +283,14 @@ mediaRouter.get("/search", async (ctx) => {
         .from(mediaItems)
         .innerJoin(mediaTypes, eq(mediaItems.type_id, mediaTypes.id));
 
-      // Build where conditions for additional items
       const additionalWhereConditions: ReturnType<typeof eq>[] = [
         sql`${mediaItems.id} IN (${sql.join(idsToFetch.map((id) => sql`${id}`), sql`, `)})`,
       ];
 
-      // Add type filter
       if (typeFilter && typeFilter !== "all" && !isNaN(parseInt(typeFilter))) {
         additionalWhereConditions.push(eq(mediaItems.type_id, parseInt(typeFilter)));
       }
 
-      // Add status filter
       if (
         statusFilter && statusFilter !== "all" &&
         ["available", "borrowed", "lost"].includes(statusFilter)
@@ -362,7 +345,6 @@ mediaRouter.get("/search", async (ctx) => {
   ctx.response.body = result;
 });
 
-// Get single media item
 mediaRouter.get("/:id", async (ctx) => {
   const db = await getDb();
   const id = parseInt(ctx.params.id);
@@ -394,7 +376,6 @@ mediaRouter.get("/:id", async (ctx) => {
 
   const row = rows[0];
 
-  // Get custom attributes
   const attributes = await db
     .select()
     .from(mediaAttributes)
@@ -424,7 +405,6 @@ mediaRouter.get("/:id", async (ctx) => {
   ctx.response.body = item;
 });
 
-// Create media item
 mediaRouter.post("/", async (ctx) => {
   const db = await getDb();
   const body = await ctx.request.body.json() as MediaItem;
@@ -447,7 +427,6 @@ mediaRouter.post("/", async (ctx) => {
 
   const id = result.insertId;
 
-  // Save custom attributes
   if (body.attributes) {
     for (const [key, value] of Object.entries(body.attributes)) {
       await db.insert(mediaAttributes).values({
@@ -462,7 +441,6 @@ mediaRouter.post("/", async (ctx) => {
   ctx.response.body = { id, ...body };
 });
 
-// Update media item
 mediaRouter.put("/:id", async (ctx) => {
   const db = await getDb();
   const id = parseInt(ctx.params.id);
@@ -497,19 +475,15 @@ mediaRouter.put("/:id", async (ctx) => {
     })
     .where(eq(mediaItems.id, id));
 
-  // If type changed, delete all old attributes and only keep valid ones for new type
   if (typeChanged) {
-    // Get valid field keys for the new type
     const newTypeFields = await db
       .select({ field_key: mediaTypeFields.field_key })
       .from(mediaTypeFields)
       .where(eq(mediaTypeFields.type_id, newTypeId));
     const validFieldKeys = new Set(newTypeFields.map((f) => f.field_key));
 
-    // Delete all existing attributes
     await db.delete(mediaAttributes).where(eq(mediaAttributes.media_id, id));
 
-    // Only insert attributes that are valid for the new type
     if (body.attributes) {
       for (const [key, value] of Object.entries(body.attributes)) {
         if (validFieldKeys.has(key)) {
@@ -522,7 +496,6 @@ mediaRouter.put("/:id", async (ctx) => {
       }
     }
   } else if (body.attributes !== undefined) {
-    // Type didn't change, update attributes normally
     await db.delete(mediaAttributes).where(eq(mediaAttributes.media_id, id));
 
     for (const [key, value] of Object.entries(body.attributes)) {
@@ -537,7 +510,6 @@ mediaRouter.put("/:id", async (ctx) => {
   ctx.response.body = { id, ...body };
 });
 
-// Delete media item
 mediaRouter.delete("/:id", async (ctx) => {
   const db = await getDb();
   const id = parseInt(ctx.params.id);
@@ -559,7 +531,6 @@ mediaRouter.delete("/:id", async (ctx) => {
   ctx.response.status = 204;
 });
 
-// Get all media types
 mediaRouter.get("/types/list", async (ctx) => {
   try {
     const db = await getDb();

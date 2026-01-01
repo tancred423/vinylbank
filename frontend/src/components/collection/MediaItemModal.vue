@@ -1,5 +1,10 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click.self="handleOverlayClick">
+  <div
+    v-if="show"
+    class="modal-overlay"
+    @mousedown.self="handleOverlayMouseDown"
+    @mouseup.self="handleOverlayMouseUp"
+  >
     <div class="modal">
       <div class="modal-header">
         <div class="header-content">
@@ -345,7 +350,7 @@
               >
                 <input
                   type="text"
-                  :value="pair.key"
+                  :value="pair.key ?? ''"
                   @input="
                     updateKeyValuePair(
                       field.field_key,
@@ -359,7 +364,7 @@
                 />
                 <input
                   type="text"
-                  :value="pair.value"
+                  :value="pair.value ?? ''"
                   @input="
                     updateKeyValuePair(
                       field.field_key,
@@ -506,10 +511,17 @@ function getCurrentDate(): string {
   return `${year}-${month}-${day}`;
 }
 
-function handleOverlayClick() {
-  if (!props.hasChanges) {
+const mouseDownOnOverlay = ref(false);
+
+function handleOverlayMouseDown() {
+  mouseDownOnOverlay.value = true;
+}
+
+function handleOverlayMouseUp() {
+  if (mouseDownOnOverlay.value && !props.hasChanges) {
     handleClose();
   }
+  mouseDownOnOverlay.value = false;
 }
 
 function handleClose() {
@@ -529,16 +541,22 @@ function handleFieldImageUpload(event: Event, fieldKey: string) {
 }
 
 interface KeyValuePair {
-  key: string;
-  value: string;
+  key: string | null;
+  value: string | null;
 }
 
 function getKeyValuePairs(fieldKey: string): KeyValuePair[] {
   const value = getFieldValue(fieldKey);
   if (!value || typeof value !== "string") return [];
   try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
+    const parsed = JSON.parse(value) as KeyValuePair[];
+    if (Array.isArray(parsed)) {
+      return parsed.map((pair) => ({
+        key: pair.key === "" || pair.key === null ? null : pair.key,
+        value: pair.value === "" || pair.value === null ? null : pair.value,
+      }));
+    }
+    return [];
   } catch {
     return [];
   }
@@ -568,7 +586,7 @@ function updateKeyValuePair(
 ) {
   const pairs = getKeyValuePairs(fieldKey);
   if (pairs[index]) {
-    pairs[index][prop] = newValue;
+    pairs[index][prop] = newValue.trim() === "" ? null : newValue;
     setKeyValuePairs(fieldKey, pairs);
   }
 }

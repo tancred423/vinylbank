@@ -111,8 +111,7 @@
     "valuePlaceholder": "z.B. Rolle",
     "removePair": "Zuordnung entfernen",
     "showMore": "{count} weitere",
-    "requiresAtLeastOne": "{field} erfordert mindestens eine Zuordnung",
-    "incompletePairs": "{field} hat unvollständige Zuordnungen. Bitte beide Felder ausfüllen oder leere Zeilen entfernen."
+    "requiresAtLeastOne": "{field} erfordert mindestens eine Zuordnung"
   },
   "rating": {
     "stars": "{count} Sterne",

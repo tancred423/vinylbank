@@ -408,12 +408,10 @@ const fieldFormData = ref({
 
 const fieldOptionsText = ref("");
 
-// Drag and drop state
 const draggedField = ref<MediaTypeField | null>(null);
 const dragOverField = ref<MediaTypeField | null>(null);
 const draggedFromConfig = ref<MediaTypeConfig | null>(null);
 
-// Watch for form changes
 watch(
   typeFormData,
   () => {
@@ -481,39 +479,33 @@ async function handleDrop(
 
     if (draggedIndex === -1 || targetIndex === -1) return;
 
-    // Reorder the fields array
     const reorderedFields = [...fields];
     const [removed] = reorderedFields.splice(draggedIndex, 1);
     reorderedFields.splice(targetIndex, 0, removed);
 
-    // Update display_order locally first for immediate feedback
     reorderedFields.forEach((field, index) => {
       field.display_order = index;
     });
 
-    // Update the local state immediately
     const configIndex = typeConfigs.value.findIndex((c) => c.id === typeConfig.id);
     if (configIndex !== -1) {
       typeConfigs.value[configIndex].fields = reorderedFields;
     }
 
-    // Update display_order for all affected fields in the background
     const updates = reorderedFields.map((field, index) => ({
       id: field.id!,
       display_order: index,
     }));
 
-    // Update each field's display_order in the backend
     for (const update of updates) {
       await configApi.updateField(update.id, { display_order: update.display_order });
     }
 
-    // Notify parent component to refresh
     emit("types-updated");
   } catch (error) {
     console.error("Failed to reorder fields:", error);
     alert(t("errors.reorderFailed"));
-    // Reload on error to restore correct state
+
     await loadConfigs();
   }
 }
@@ -550,7 +542,6 @@ function generateUniqueFieldKey(baseKey: string): string {
   return candidate;
 }
 
-// Watch field_label to auto-generate unique field_key (only when adding, not editing)
 watch(
   () => fieldFormData.value.field_label,
   (newLabel) => {
@@ -577,7 +568,6 @@ async function loadConfigs(preserveScroll = false) {
     typeConfigs.value = await configApi.getTypeConfigs();
 
     if (preserveScroll) {
-      // Use nextTick + setTimeout to ensure DOM is fully updated before restoring scroll
       await nextTick();
       setTimeout(() => {
         window.scrollTo({ top: scrollY, behavior: "instant" });
@@ -628,8 +618,8 @@ async function saveType() {
     } else {
       await configApi.createType(typeFormData.value.name);
     }
-    await loadConfigs(true); // Preserve scroll position
-    emit("types-updated"); // Notify parent component
+    await loadConfigs(true);
+    emit("types-updated");
     closeTypeModal();
   } catch (error) {
     console.error("Failed to save type:", error);
@@ -644,7 +634,7 @@ async function deleteType(id: number) {
 
   try {
     await configApi.deleteType(id);
-    await loadConfigs(true); // Preserve scroll position
+    await loadConfigs(true);
   } catch (error) {
     const err = error as { response?: { data?: { error?: string } } };
     console.error("Failed to delete type:", error);
@@ -714,7 +704,6 @@ async function saveField() {
   try {
     if (!currentTypeConfig.value) return;
 
-    // Ensure field_key is generated if empty
     if (!fieldFormData.value.field_key && fieldFormData.value.field_label) {
       generateFieldKey();
     }
@@ -768,7 +757,7 @@ async function saveField() {
       await configApi.addField(currentTypeConfig.value.id, fieldData);
     }
 
-    await loadConfigs(true); // Preserve scroll position
+    await loadConfigs(true);
     emit("types-updated");
     closeFieldModal();
   } catch (error) {
@@ -785,7 +774,7 @@ async function deleteField(id: number) {
 
   try {
     await configApi.deleteField(id);
-    await loadConfigs(true); // Preserve scroll position
+    await loadConfigs(true);
   } catch (error) {
     console.error("Failed to delete field:", error);
     alert(t("errors.deleteFailed"));

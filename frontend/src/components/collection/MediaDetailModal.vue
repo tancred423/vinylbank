@@ -1,5 +1,10 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click.self="handleClose">
+  <div
+    v-if="show"
+    class="modal-overlay"
+    @mousedown.self="handleOverlayMouseDown"
+    @mouseup.self="handleOverlayMouseUp"
+  >
     <div class="modal detail-modal">
       <div class="modal-header">
         <div class="header-content">
@@ -117,9 +122,17 @@
                 :key="index"
                 class="keyvalue-item"
               >
-                <span class="keyvalue-key">{{ pair.key }}</span>
-                <span class="keyvalue-separator">→</span>
-                <span class="keyvalue-value">{{ pair.value }}</span>
+                <template v-if="pair.key && pair.value">
+                  <span class="keyvalue-key">{{ pair.key }}</span>
+                  <span class="keyvalue-separator">→</span>
+                  <span class="keyvalue-value">{{ pair.value }}</span>
+                </template>
+                <template v-else-if="pair.key">
+                  <span class="keyvalue-key">{{ pair.key }}</span>
+                </template>
+                <template v-else-if="pair.value">
+                  <span class="keyvalue-value">{{ pair.value }}</span>
+                </template>
               </div>
               <div v-if="getKeyValuePairs(field.field_key).length === 0" class="empty-keyvalue">
                 —
@@ -161,7 +174,7 @@ function closeLightbox() {
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === "Escape" && props.show) {
     event.preventDefault();
-    event.stopImmediatePropagation(); // Prevent other document listeners from firing
+    event.stopImmediatePropagation();
 
     if (lightboxImage.value) {
       closeLightbox();
@@ -251,8 +264,8 @@ function isFieldValueTrue(fieldKey: string): boolean {
 }
 
 interface KeyValuePair {
-  key: string;
-  value: string;
+  key: string | null;
+  value: string | null;
 }
 
 function getKeyValuePairs(fieldKey: string): KeyValuePair[] {
@@ -334,8 +347,22 @@ function handleImageError(event: Event) {
   img.style.display = "none";
 }
 
+const mouseDownOnOverlay = ref(false);
+
+function handleOverlayMouseDown() {
+  mouseDownOnOverlay.value = true;
+}
+
+function handleOverlayMouseUp() {
+  if (mouseDownOnOverlay.value) {
+    handleClose();
+  }
+  mouseDownOnOverlay.value = false;
+}
+
 function handleClose() {
-  lightboxImage.value = null; // Reset lightbox when closing modal
+  lightboxImage.value = null;
+  mouseDownOnOverlay.value = false;
   emit("close");
 }
 

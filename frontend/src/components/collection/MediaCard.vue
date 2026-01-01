@@ -69,9 +69,17 @@
             :key="index"
             class="keyvalue-item-inline"
           >
-            <span class="kv-key">{{ pair.key }}</span>
-            <span class="kv-arrow">→</span>
-            <span class="kv-value">{{ pair.value }}</span>
+            <template v-if="pair.key && pair.value">
+              <span class="kv-key">{{ pair.key }}</span>
+              <span class="kv-arrow">→</span>
+              <span class="kv-value">{{ pair.value }}</span>
+            </template>
+            <template v-else-if="pair.key">
+              <span class="kv-key">{{ pair.key }}</span>
+            </template>
+            <template v-else-if="pair.value">
+              <span class="kv-value">{{ pair.value }}</span>
+            </template>
           </div>
           <div
             v-if="getKeyValuePairsCount(field.field_key) > maxKeyValueDisplay"
@@ -163,8 +171,8 @@ function isFieldValueTrue(fieldKey: string): boolean {
 }
 
 interface KeyValuePair {
-  key: string;
-  value: string;
+  key: string | null;
+  value: string | null;
 }
 
 function getKeyValuePairs(fieldKey: string): KeyValuePair[] {

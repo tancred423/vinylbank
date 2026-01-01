@@ -231,7 +231,7 @@ async function confirmConfigImport() {
     if (importConfigInput.value) {
       importConfigInput.value.value = "";
     }
-    // Reload the page to reflect changes
+
     window.location.reload();
   } catch (error) {
     console.error("Import error:", error);
@@ -284,7 +284,7 @@ async function confirmDataImport() {
     if (importDataInput.value) {
       importDataInput.value.value = "";
     }
-    // Reload the page to reflect changes
+
     window.location.reload();
   } catch (error) {
     console.error("Import error:", error);
