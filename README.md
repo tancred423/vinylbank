@@ -1,3 +1,7 @@
+> **Archive**
+>
+> Moved to https://gitlab.com/tancred/vinylbank
+
 # VinylBank
 
 A self-hosted app to manage your physical media collection — CDs, DVDs, Blu-rays, Vinyl records, and more.
